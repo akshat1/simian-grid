@@ -55,4 +55,4 @@ gulp.task('html', function() {
 gulp.task('build', ['html', 'js']);
 
 
-gulp.task('default', ['build']);
+gulp.task('default', ['js']);
