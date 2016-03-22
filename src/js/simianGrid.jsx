@@ -6,7 +6,6 @@ var autobind = require('autobind-decorator');
 var _ = require('lodash');
 
 
-var ROW_HEIGHT = 40;
 var NUM_BUFFER_ROWS = 30;
 
 
@@ -28,39 +27,13 @@ class SimianGrid extends React.Component {
 
   @autobind
   handleScroll(event) {
-    /*
-    //Scroll amount is deltaY; TODO: Look at deltaMode
-    let delta       = event.deltaY;
-    let numNewRows  = Math.floor(delta / ROW_HEIGHT);
-    let state       = this.state;
-    let props       = this.props;
-    let tableTopPos = this.refs['outerWrapper'].scrollTop;
-    let newIndex    = state.currentIndex + numNewRows;
-    //console.log('delta: ', delta);
-    if (delta > 0) {
-      //console.log(0);
-      // Scroll downwards
-      this.setState({
-        currentIndex : newIndex,
-        tableTopPos  : tableTopPos
-      });
-    } else {
-      //console.log(1);
-      if (newIndex > 0) {
-        this.setState({
-          currentIndex : newIndex,
-          tableTopPos  : tableTopPos
-        });
-      }
-    }
-    */
-
     let wrapper = this.refs['outerWrapper'];
     let scrollTop = wrapper.scrollTop;
-    let newIndex = Math.floor(scrollTop / ROW_HEIGHT);
+    let rowHeight = this.props.rowHeight;
+    let newIndex = Math.floor(scrollTop / rowHeight);
     this.setState({
       currentIndex : newIndex,
-      tableTopPos  : newIndex > NUM_BUFFER_ROWS ? scrollTop - (NUM_BUFFER_ROWS * ROW_HEIGHT) : scrollTop
+      tableTopPos  : newIndex > NUM_BUFFER_ROWS ? scrollTop - (NUM_BUFFER_ROWS * rowHeight) : scrollTop
     });
   }
 
@@ -78,7 +51,7 @@ class SimianGrid extends React.Component {
 
 
   getInnerWrapperStyle() {
-    let height = this.props.numTotalRows * ROW_HEIGHT;
+    let height = this.props.numTotalRows * this.props.rowHeight;
     return {
       position : 'relative',
       height   : height
@@ -114,21 +87,38 @@ class SimianGrid extends React.Component {
 
   @autobind
   renderHead(){
-    return;
+    let columnDefinition = this.props.columnDefinition;
+    // Let us assume this function is ONLY called if columnDefinition is truthy
+    let cells = columnDefinition.map(function(colDef, index) {
+      return (
+        <td className={colDef.className} key={`header-cell-${index}`}>
+          {colDef.title}
+        </td>
+      );
+    });
+    return (
+      <tr className='header' key='header-row'>
+        {cells}
+      </tr>
+    );
   }
 
 
   @autobind
   renderBody() {
-    let state = this.state;
     let props = this.props;
     let rows = props.rows;
     let renderedRows = [];
-    let lb = state.currentIndex;
-    let ub = lb + props.cursorSize + NUM_BUFFER_ROWS;
-    if (lb > NUM_BUFFER_ROWS)
+    let currentIndex = this.state.currentIndex;
+    let lb = currentIndex;
+    let ub = lb + props.cursorSize + NUM_BUFFER_ROWS - 1; // -1 for the header
+    let headerRowIndex = currentIndex;
+    if (lb > NUM_BUFFER_ROWS) {
       lb = lb - NUM_BUFFER_ROWS;
+    }
     for (let i = lb; i < ub; i++) {
+      if (i === headerRowIndex)
+        renderedRows.push(this.renderHead());
       renderedRows.push(this.renderRow(rows[i], i));
     }
     return (
@@ -143,7 +133,6 @@ class SimianGrid extends React.Component {
   renderTable() {
     return (
       <table style={this.getTableStyle()}>
-        {this.renderHead()}
         {this.renderBody()}
       </table>
     );

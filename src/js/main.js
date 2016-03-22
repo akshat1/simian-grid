@@ -7,8 +7,26 @@ var SimianGrid = require('./simianGrid.jsx');
 
 
 function makeDataModel() {
-  var columns = [];
-  var rows = generateData(1000, [{
+  var columnDefinition = [
+    {
+      title: 'Count',
+      className: 'count'
+    }, {
+      title: 'First',
+      className: 'first'
+    }, {
+      title: 'Column Two',
+      className: 'column-two'
+    }, {
+      title: 'Tre',
+      className: 'tre'
+    }, {
+      title: 'Double Two',
+      className: 'double-two'
+    }
+  ];
+
+  var rows = generateData(100000, [{
     dataType : 'NUMBER',
     isCount  : true
   },{
@@ -27,8 +45,10 @@ function makeDataModel() {
   ]);
 
   return {
-    rows       : rows,
-    cursorSize : 10
+    columnDefinition : columnDefinition,
+    rowHeight        : 39,
+    rows             : rows,
+    cursorSize       : 10
   };
 }
 
@@ -36,7 +56,13 @@ function makeDataModel() {
 document.addEventListener('DOMContentLoaded', function() {
   window.model = makeDataModel();
   ReactDOM.render(
-    <SimianGrid rows={model.rows} cursorSize={model.cursorSize} numTotalRows={model.rows.length}/>,
+    <SimianGrid
+      rows={model.rows}
+      cursorSize={model.cursorSize}
+      numTotalRows={model.rows.length}
+      columnDefinition={model.columnDefinition}
+      rowHeight={model.rowHeight}
+    />,
     document.getElementById('demoRoot')
   );
 });

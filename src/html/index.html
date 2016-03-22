@@ -27,11 +27,45 @@
       .simiangrid-wrapper table {
         border-collapse : collapse;
         position: absolute;
+        width: 100%;
       }
 
       .simiangrid-wrapper td {
         border  : 1px solid gray;
         padding : 10px;
+        box-sizing: border-box;
+        height: 39px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .simiangrid-wrapper .header td{
+        background: #FFF;
+      }
+
+      .simiangrid-wrapper .count {
+        width: 50px;
+        max-width: 50px;
+      }
+
+      /*.simiangrid-wrapper .first {
+        width: 50px;
+      }*/
+
+      .simiangrid-wrapper .column-two {
+        width: 100px;
+        max-width: 100px;
+      }
+
+      .simiangrid-wrapper .tre {
+        width: 100px;
+        max-width: 100px;
+      }
+
+      .simiangrid-wrapper .double-two {
+        width: 100px;
+        max-width: 100px;
       }
     </style>
     <script src='./js/main.js'></script>
