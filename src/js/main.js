@@ -5,6 +5,9 @@ var ReactDOM = require('react-dom');
 var React = require('react');
 var SimianGrid = require('./simianGrid.jsx');
 
+window.React = React;
+window.ReactDOM = ReactDOM;
+
 
 function makeDataModel() {
   var columnDefinition = [
@@ -26,7 +29,7 @@ function makeDataModel() {
     }
   ];
 
-  var rows = generateData(100000, [{
+  var rows = generateData(1000000, [{
     dataType : 'NUMBER',
     isCount  : true
   },{
@@ -47,8 +50,7 @@ function makeDataModel() {
   return {
     columnDefinition : columnDefinition,
     rowHeight        : 39,
-    rows             : rows,
-    cursorSize       : 10
+    rows             : rows
   };
 }
 
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
   ReactDOM.render(
     <SimianGrid
       rows={model.rows}
-      cursorSize={model.cursorSize}
       numTotalRows={model.rows.length}
       columnDefinition={model.columnDefinition}
       rowHeight={model.rowHeight}

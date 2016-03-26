@@ -21,13 +21,30 @@
 
 
       .simiangrid-wrapper {
-        background : orange;
+        height     : 100%;
+        width      : 100%;
+        border     : 1px solid black;
+        overflow   : auto;
+      }
+
+      .simiangrid-inner-wrapper {
+        position: relative;
+        background: orange;
+        overflow: hidden;
       }
 
       .simiangrid-wrapper table {
         border-collapse : collapse;
         position: absolute;
         width: 100%;
+      }
+
+      .simiangrid-wrapper tr.even {
+        background: #DDEEFF;
+      }
+
+      .simiangrid-wrapper tr.odd {
+        background: #FFF;
       }
 
       .simiangrid-wrapper td {
@@ -41,7 +58,8 @@
       }
 
       .simiangrid-wrapper .header td{
-        background: #FFF;
+        background: #1ACEF7;
+        color: #FFF;
       }
 
       .simiangrid-wrapper .count {

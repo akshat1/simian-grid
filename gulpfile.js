@@ -5,6 +5,7 @@ var del        = require('del');
 var browserify = require('browserify');
 var babelify   = require('babelify');
 var source     = require('vinyl-source-stream');
+var serve      = require('gulp-serve');
 
 
 /* ************************************************************* */
@@ -53,6 +54,10 @@ gulp.task('html', function() {
 
 
 gulp.task('build', ['html', 'js']);
+gulp.task('b', ['build']);
+
+
+gulp.task('serve', serve(Locations.Dest.Root));
 
 
 gulp.task('default', ['js']);
