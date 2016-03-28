@@ -11,7 +11,7 @@ Props:
 
 ### Current state
 
-The demo page scrolls through a million rows easily.
+The demo page scrolls through a million rows easily on Chrome. On Firefox, we only generate 100,000 random rows as a million rows never seem to finish being generated there. And Safari for some reason does not scroll as smoothly as FF or Chrome for any number of rows.
 
 ### Coming features
 

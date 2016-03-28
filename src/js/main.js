@@ -29,7 +29,7 @@ function makeDataModel() {
     }
   ];
 
-  var rows = generateData(1000000, [{
+  var rows = generateData(window.navigator.userAgent.indexOf('Firefox') === -1 ? 1000000 : 100000, [{
     dataType : 'NUMBER',
     isCount  : true
   },{
