@@ -22,8 +22,8 @@ The demo page scrolls through a million rows easily on Chrome. On Firefox, we on
 
 ```
 $ npm install
-$ gulp build
-$ open dist/index.html
+$ gulp demo
+$ open demo/index.html
 ```
 
 ### Notes

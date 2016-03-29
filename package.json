@@ -1,6 +1,6 @@
 {
   "name": "simian-grid",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "description": "React based infinite scrolling grid",
   "main": "lib/simian-grid.js",
   "scripts": {
