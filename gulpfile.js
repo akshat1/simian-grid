@@ -2,25 +2,26 @@
 
 var gulp       = require('gulp');
 var del        = require('del');
+var babel      = require('gulp-babel');
 var browserify = require('browserify');
 var babelify   = require('babelify');
 var source     = require('vinyl-source-stream');
-var serve      = require('gulp-serve');
 
 
 /* ************************************************************* */
 
-var ClientJsName = 'main.js';
-
+var DemoJsName = 'demo.js';
 var Locations = {
   Src: {
     HTML: 'src/html/**/*.html',
-    JS_Entry : 'src/js/main.js'
+    JS_Entry : 'src/js/simian-grid.jsx',
+    Demo_Entry : 'src/js/demo.js'
   },
   Dest: {
-    Root: 'dist/',
-    HTML: 'dist/',
-    JS: 'dist/js'
+    Lib: 'lib/',
+    Root: 'demo/',
+    HTML: 'demo/',
+    JS: 'demo/js'
   }
 }
 
@@ -30,34 +31,42 @@ var BabelOptions = {}
 /* ************************************************************* */
 
 gulp.task('clean', function() {
-  del(Locations.Dest.Root);
+  return del([Locations.Dest.Root, Locations.Dest.Lib]);
 });
 
 
 /* ************************************************************* */
 
-gulp.task('js', function() {
-  return browserify(Locations.Src.JS_Entry, {
+gulp.task('dist', function() {
+  return gulp.src(Locations.Src.JS_Entry)
+    .pipe(babel())
+    .pipe(gulp.dest(Locations.Dest.Lib));
+});
+
+
+/* ************************************************************* */
+
+gulp.task('demo-js', function() {
+  return browserify(Locations.Src.Demo_Entry, {
       debug: true
     })
     .transform(babelify.configure(BabelOptions))
     .bundle()
-    .pipe(source(ClientJsName))
+    .pipe(source(DemoJsName))
     .pipe(gulp.dest(Locations.Dest.JS));
 });
 
 
-gulp.task('html', function() {
+gulp.task('demo-html', function() {
   gulp.src(Locations.Src.HTML)
     .pipe(gulp.dest(Locations.Dest.HTML));
 });
 
 
-gulp.task('build', ['html', 'js']);
-gulp.task('b', ['build']);
+gulp.task('demo', ['demo-html', 'demo-js']);
+gulp.task('d', ['demo']);
 
 
-gulp.task('serve', serve(Locations.Dest.Root));
+/* ************************************************************* */
 
-
-gulp.task('default', ['js']);
+gulp.task('default', ['dist', 'demo']);

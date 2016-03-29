@@ -10,6 +10,12 @@ var _ = require('lodash');
 
 var NUM_BUFFER_ROWS = 10;
 
+var OUTER_WRAPPER_STYLE = {
+  overflow: 'auto',
+  height: '100%',
+  width: '100%'
+};
+
 
 class SimianGrid extends React.Component {
   constructor(props) {
@@ -76,14 +82,30 @@ class SimianGrid extends React.Component {
 
   getInnerWrapperStyle() {
     return {
-      height: this.state.innerWrapperHeight
+      height: this.state.innerWrapperHeight,
+      position: 'relative',
+      overflow: 'hidden'
     };
+  }
+
+
+  getCellStyle() {
+    return {
+      boxSizing: 'border-box',
+      height: this.props.rowHeight,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
   }
 
 
   getTableStyle() {
     return {
-      top: this.state.tableTopPos
+      top: this.state.tableTopPos,
+      borderCollapse: 'collapse',
+      width: '100%',
+      position: 'absolute'
     }
   }
 
@@ -91,7 +113,7 @@ class SimianGrid extends React.Component {
   @autobind
   renderCell(data, index) {
     return (
-      <td key={index}>
+      <td key={index} style={this.getCellStyle()}>
         {data}
       </td>
     );
@@ -112,10 +134,11 @@ class SimianGrid extends React.Component {
   @autobind
   renderHead(){
     let columnDefinition = this.props.columnDefinition;
+    let style = this.getCellStyle();
     // Let us assume this function is ONLY called if columnDefinition is truthy
     let cells = columnDefinition.map(function(colDef, index) {
       return (
-        <td className={colDef.className} key={`header-cell-${index}`}>
+        <td className={colDef.className} key={`header-cell-${index}`} style={style}>
           {colDef.title}
         </td>
       );
@@ -171,7 +194,7 @@ class SimianGrid extends React.Component {
 
   render() {
     return (
-      <div className='simiangrid-wrapper' ref='outerWrapper'>
+      <div className='simiangrid-wrapper' ref='outerWrapper' style={OUTER_WRAPPER_STYLE}>
         <div style={this.getInnerWrapperStyle()} className='simiangrid-inner-wrapper'>
           {this.renderTable()}
         </div>
