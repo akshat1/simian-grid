@@ -1,11 +1,10 @@
 'use strict';
 
-require('./element-resize-polyfill.js');
-
 var React = require('react');
 var ReactDOM = require('react-dom');
 var autobind = require('autobind-decorator');
 var _ = require('lodash');
+var setupResizeHandling = require('element-resize-event');
 
 
 var NUM_BUFFER_ROWS = 10;
@@ -32,7 +31,7 @@ class SimianGrid extends React.Component {
     let outerWrapper = this.refs['outerWrapper'];
     // wheel
     outerWrapper.addEventListener('scroll', this.handleScroll);
-    outerWrapper.addEventListener('resize', _.debounce(this.handleResize, 50));
+    setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 50));
   }
 
 
