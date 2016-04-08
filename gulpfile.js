@@ -6,6 +6,7 @@ var babel      = require('gulp-babel');
 var browserify = require('browserify');
 var babelify   = require('babelify');
 var source     = require('vinyl-source-stream');
+var serve      = require('gulp-serve');
 
 
 /* ************************************************************* */
@@ -68,5 +69,7 @@ gulp.task('d', ['demo']);
 
 
 /* ************************************************************* */
+
+gulp.task('serve', serve(Locations.Dest.Root));
 
 gulp.task('default', ['dist', 'demo']);

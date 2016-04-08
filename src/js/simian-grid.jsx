@@ -7,69 +7,83 @@ var _ = require('lodash');
 var setupResizeHandling = require('element-resize-event');
 
 
-var NUM_BUFFER_ROWS = 10;
+function lesser(a, b){
+  return a < b ? a : b;
+}
 
+
+function greater(a, b){
+  return a > b ? a : b;
+}
+
+
+var NUM_BUFFER_ROWS = 5;
 var OUTER_WRAPPER_STYLE = {
   overflow: 'auto',
   height: '100%',
-  width: '100%'
+  width: '100%',
+  background: 'lime'
+};
+
+var CLASS_NAME = {
+  OUTER_WRAPPER: 'simiangrid-wrapper',
+  INNER_WRAPPER: 'simiangrid-inner-wrapper',
+  EVEN: 'even',
+  ODD: 'odd',
+  HEADER_ROW: 'header',
+  DUMMY: 'dummy',
+  OUTER_WRAPPER: 'simiangrid-wrapper'
+};
+
+var REF_NAME = {
+  OUTER_WRAPPER: 'outer-wrapper',
+  INNER_WRAPPER: 'inner-wrapper'
 };
 
 
 class SimianGrid extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      currentIndex : 0,
-      tableTopPos  : 0,
-      cursorSize   : 10
+    this.state ={
+      innerWrapperHeight: 0
     };
+    window._grid = this;
   }
 
 
+  // =============== Logic =========================================================================================================
+
+  updateSelf(addendum) {
+    let props = this.props;
+    let rowHeight = props.rowHeight;
+    let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
+    let numTotalRows = props.numTotalRows;
+    let innerWrapperHeight = numTotalRows * rowHeight;
+    let cursorSize = Math.floor(wrapper.clientHeight / rowHeight);
+    let numRowsAboveTheTopEdge = Math.floor(wrapper.scrollTop / rowHeight);
+    let tableTopPos = ((numRowsAboveTheTopEdge - NUM_BUFFER_ROWS) * rowHeight) + (wrapper.scrollTop % rowHeight);
+
+    this.setState({
+      numberOfDummyRows: greater(NUM_BUFFER_ROWS - numRowsAboveTheTopEdge, 0),
+      innerWrapperHeight: innerWrapperHeight,
+      lowerBound: greater(numRowsAboveTheTopEdge - NUM_BUFFER_ROWS, 0),
+      upperBound: lesser(numRowsAboveTheTopEdge + cursorSize + NUM_BUFFER_ROWS, numTotalRows),
+      tableTopPos: tableTopPos
+    });
+  }
+
+  // =============== Events =========================================================================================================
+
   setUpEventListeners() {
-    let outerWrapper = this.refs['outerWrapper'];
-    // wheel
+    let outerWrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     outerWrapper.addEventListener('scroll', this.handleScroll);
     setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 50));
   }
 
 
   @autobind
-  updateSelf() {
-    let cursorSize = Math.floor(this.refs['outerWrapper'].clientHeight / this.props.rowHeight) - 1; //-1 for header
-    let maxLB = this.props.rows.length - (NUM_BUFFER_ROWS + cursorSize);
-    this.setState({
-      innerWrapperHeight: this.props.numTotalRows * this.props.rowHeight,
-      maxLB: maxLB,
-      cursorSize: cursorSize
-    });
-  }
-
-
-  componentWillReceiveProps(nextProps) {
+  handleScroll() {
     this.updateSelf();
-  }
-
-
-  componentDidMount() {
-    this.setUpEventListeners();
-    this.updateSelf();
-  }
-
-
-  @autobind
-  handleScroll(event) {
-    let wrapper = this.refs['outerWrapper'];
-    let scrollTop = wrapper.scrollTop;
-    let rowHeight = this.props.rowHeight;
-    let newIndex = Math.floor(scrollTop / rowHeight);
-    let availRows = this.props.rows.length;
-    let tableTopPos = newIndex > NUM_BUFFER_ROWS ? scrollTop - (NUM_BUFFER_ROWS * rowHeight) : scrollTop - (newIndex * rowHeight)
-    this.setState({
-      currentIndex : newIndex,
-      tableTopPos  : tableTopPos
-    });
   }
 
 
@@ -79,12 +93,35 @@ class SimianGrid extends React.Component {
   }
 
 
+  // =============== Life-Cycle ========================================================================================================
+
+  componentDidMount() {
+    this.setUpEventListeners();
+    this.updateSelf();
+  }
+
+
+  // =============== Rendering =========================================================================================================
+
+  @autobind
   getInnerWrapperStyle() {
     return {
       height: this.state.innerWrapperHeight,
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      background: 'orange'
     };
+  }
+
+
+  @autobind
+  getTableStyle() {
+    return {
+      top: this.state.tableTopPos,
+      borderCollapse: 'collapse',
+      width: '100%',
+      position: 'absolute'
+    }
   }
 
 
@@ -99,80 +136,64 @@ class SimianGrid extends React.Component {
   }
 
 
-  getTableStyle() {
-    return {
-      top: this.state.tableTopPos,
-      borderCollapse: 'collapse',
-      width: '100%',
-      position: 'absolute'
-    }
-  }
-
-
-  @autobind
-  renderCell(data, index) {
-    return (
-      <td key={index} style={this.getCellStyle()}>
-        {data}
-      </td>
-    );
-  }
-
-
-  @autobind
   renderRow(row, index) {
-    let evenOdd = index % 2 === 0 ? 'even' : 'odd';
+    let evenOdd = index % 2 === 0 ? CLASS_NAME.EVEN : CLASS_NAME.ODD;
     return (
       <tr key={index} className={evenOdd}>
-        {row.map(this.renderCell)}
+        <td style={this.getCellStyle()} key={`cell-${index}-0`}>
+          {`Row ${index}`}
+        </td>
       </tr>
     );
   }
 
 
   @autobind
-  renderHead(){
-    let columnDefinition = this.props.columnDefinition;
-    let style = this.getCellStyle();
-    // Let us assume this function is ONLY called if columnDefinition is truthy
-    let cells = columnDefinition.map(function(colDef, index) {
-      return (
-        <td className={colDef.className} key={`header-cell-${index}`} style={style}>
-          {colDef.title}
-        </td>
-      );
-    });
+  renderHeaderCell(cellTemplate, index) {
     return (
-      <tr className='header' key='header-row'>
+      <td key={`header-cell-${index}`} style={this.getCellStyle()}>
+        {cellTemplate.title}
+      </td>
+    );
+  }
+
+
+  renderHeaderRow() {
+    let cells = this.props.columnDefinition.map(this.renderHeaderCell);
+    return (
+      <tr className={CLASS_NAME.HEADER_ROW} key='header-row'>
         {cells}
       </tr>
     );
   }
 
 
-  @autobind
-  renderBody() {
-    let props = this.props;
-    let state = this.state;
-    let rows = props.rows;
-    let renderedRows = [];
-    let currentIndex = state.currentIndex;
-    let lb = currentIndex;
-    let cursorSize = state.cursorSize;
-    let maxLB = state.maxLB;
-    if (lb > maxLB)
-      lb = maxLB;
-    let ub = lb + cursorSize + 2 * NUM_BUFFER_ROWS;
-    let headerRowIndex = currentIndex < NUM_BUFFER_ROWS ? currentIndex : NUM_BUFFER_ROWS;
-    let headerRow = this.renderHead();
-    for (let i = lb; i < ub; i++) {
-      let row = rows[i];
-      if (!row)
-        break;
-      renderedRows.push(this.renderRow(rows[i], i));
-
+  renderDummyRows(numDummyRows) {
+    var rows = [];
+    for (var i = 0; i < numDummyRows; i++) {
+      rows.push(
+        <tr className={CLASS_NAME.DUMMY} key={`dummy-row-${i}`}>
+          <td style={this.getCellStyle()}>
+            DUMMY
+          </td>
+        </tr>
+      );
     }
-    renderedRows.splice(headerRowIndex, 0, headerRow);
+    return rows;
+  }
+
+
+  renderBody() {
+    let state = this.state;
+    let lowerBound = state.lowerBound;
+    let upperBound = state.upperBound;
+    let numRowsToRender = upperBound - lowerBound;
+    let numberOfDummyRows = state.numberOfDummyRows;
+    let renderedRows = this.renderDummyRows(numberOfDummyRows);
+    for(let i = 0; i < numRowsToRender; i++) {
+      renderedRows.push(this.renderRow(null, lowerBound + i));
+    }
+    renderedRows.splice(NUM_BUFFER_ROWS, 0, this.renderHeaderRow());
     return (
       <tbody>
         {renderedRows}
@@ -181,7 +202,6 @@ class SimianGrid extends React.Component {
   }
 
 
-  @autobind
   renderTable() {
     return (
       <table style={this.getTableStyle()}>
@@ -193,8 +213,8 @@ class SimianGrid extends React.Component {
 
   render() {
     return (
-      <div className='simiangrid-wrapper' ref='outerWrapper' style={OUTER_WRAPPER_STYLE}>
-        <div style={this.getInnerWrapperStyle()} className='simiangrid-inner-wrapper'>
+      <div className={CLASS_NAME.OUTER_WRAPPER} style={OUTER_WRAPPER_STYLE} ref={REF_NAME.OUTER_WRAPPER}>
+        <div className='' style={this.getInnerWrapperStyle()} ref={REF_NAME.INNER_WRAPPER}>
           {this.renderTable()}
         </div>
       </div>
