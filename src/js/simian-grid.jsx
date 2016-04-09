@@ -21,8 +21,7 @@ var NUM_BUFFER_ROWS = 5;
 var OUTER_WRAPPER_STYLE = {
   overflow: 'auto',
   height: '100%',
-  width: '100%',
-  background: 'lime'
+  width: '100%'
 };
 
 var CLASS_NAME = {
@@ -44,10 +43,9 @@ var REF_NAME = {
 class SimianGrid extends React.Component {
   constructor(props) {
     super(props);
-    this.state ={
+    this.state = {
       innerWrapperHeight: 0
     };
-    window._grid = this;
   }
 
 
@@ -77,7 +75,7 @@ class SimianGrid extends React.Component {
   setUpEventListeners() {
     let outerWrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     outerWrapper.addEventListener('scroll', this.handleScroll);
-    setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 50));
+    setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 25));
   }
 
 
@@ -103,18 +101,15 @@ class SimianGrid extends React.Component {
 
   // =============== Rendering =========================================================================================================
 
-  @autobind
   getInnerWrapperStyle() {
     return {
       height: this.state.innerWrapperHeight,
       position: 'relative',
-      overflow: 'hidden',
-      background: 'orange'
+      overflow: 'hidden'
     };
   }
 
 
-  @autobind
   getTableStyle() {
     return {
       top: this.state.tableTopPos,
@@ -136,13 +131,24 @@ class SimianGrid extends React.Component {
   }
 
 
+  renderCell(data, rowIndex, cellIndex) {
+    return (
+      <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()}>
+        {data}
+      </td>
+    );
+  }
+
+
   renderRow(row, index) {
-    let evenOdd = index % 2 === 0 ? CLASS_NAME.EVEN : CLASS_NAME.ODD;
+    let evenOdd = index % 2 === 0 ? 'even' : 'odd';
+    let renderedCells = [];
+    for (var i = 0, len = row.length; i < len; i++)
+      renderedCells.push(this.renderCell(row[i], index, i));
+
     return (
       <tr key={index} className={evenOdd}>
-        <td style={this.getCellStyle()} key={`cell-${index}-0`}>
-          {`Row ${index}`}
-        </td>
+        {renderedCells}
       </tr>
     );
   }
@@ -186,12 +192,13 @@ class SimianGrid extends React.Component {
   renderBody() {
     let state = this.state;
     let lowerBound = state.lowerBound;
-    let upperBound = state.upperBound;
-    let numRowsToRender = upperBound - lowerBound;
-    let numberOfDummyRows = state.numberOfDummyRows;
-    let renderedRows = this.renderDummyRows(numberOfDummyRows);
+    let numRowsToRender = state.upperBound - lowerBound;
+    let rows = this.props.rows;
+
+    let renderedRows = this.renderDummyRows(state.numberOfDummyRows);
     for(let i = 0; i < numRowsToRender; i++) {
-      renderedRows.push(this.renderRow(null, lowerBound + i));
+      let row = rows[i + lowerBound];
+      renderedRows.push(this.renderRow(row, lowerBound + i));
     }
     renderedRows.splice(NUM_BUFFER_ROWS, 0, this.renderHeaderRow());
     return (
@@ -214,7 +221,7 @@ class SimianGrid extends React.Component {
   render() {
     return (
       <div className={CLASS_NAME.OUTER_WRAPPER} style={OUTER_WRAPPER_STYLE} ref={REF_NAME.OUTER_WRAPPER}>
-        <div className='' style={this.getInnerWrapperStyle()} ref={REF_NAME.INNER_WRAPPER}>
+        <div className={CLASS_NAME.INNER_WRAPPER} style={this.getInnerWrapperStyle()} ref={REF_NAME.INNER_WRAPPER}>
           {this.renderTable()}
         </div>
       </div>

@@ -8,7 +8,7 @@ var SimianGrid = require('./simian-grid.jsx');
 window.React = React;
 window.ReactDOM = ReactDOM;
 
-var MAX_ROWS = 2000000;
+var MAX_ROWS = 1000000;
 
 // used by datagen to produce sample data
 var dataTemplate = [{
@@ -62,21 +62,24 @@ function getRows(from, num) {
   console.log(`getRows(${from}, ${num})`);
   return new Promise(function(resolve, reject) {
     var rows = generateData(num, dataTemplate);
-    rows.forEach(function(row) {
-      row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
-    });
+    if(from !== 0)
+      rows.forEach(function(row) {
+        row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
+      });
     resolve(rows);
   });
 }
 
 
 function makeDataModel() {
-  return {
-    columnDefinition: columnDefinition,
-    rowHeight: 40,
-    numTotalRows: MAX_ROWS,
-    getRowsFunction: getRows
-  };
+  return getRows(0, MAX_ROWS).then(function(rows) {
+    return {
+      columnDefinition: columnDefinition,
+      rowHeight: 40,
+      numTotalRows: MAX_ROWS,
+      rows: rows
+    };
+  });
 }
 
 
@@ -94,25 +97,27 @@ function insertStyleRules() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-  window.model = makeDataModel();
-  insertStyleRules();
-  var demoRootStyle = {
-    border: '1px solid black',
-    width: '85vw',
-    height: '85vh',
-    fontFamily: 'sans-serif',
-    color: '#000',
-    margin: '20px auto'
-  };
-  ReactDOM.render(
-    <div id = 'demoRoot' style = {demoRootStyle}>
-      <SimianGrid
-        getRows={model.getRows}
-        numTotalRows={model.numTotalRows}
-        columnDefinition={model.columnDefinition}
-        rowHeight={model.rowHeight}
-      />
-    </div>,
-    document.body
-  );
+  makeDataModel().then(function(model) {
+    window.model = model;
+    insertStyleRules();
+    var demoRootStyle = {
+      border: '1px solid black',
+      width: '85vw',
+      height: '85vh',
+      fontFamily: 'sans-serif',
+      color: '#000',
+      margin: '20px auto'
+    };
+    ReactDOM.render(
+      <div id = 'demoRoot' style = {demoRootStyle}>
+        <SimianGrid
+          rows={model.rows}
+          numTotalRows={model.numTotalRows}
+          columnDefinition={model.columnDefinition}
+          rowHeight={model.rowHeight}
+        />
+      </div>,
+      document.body
+    );
+  });
 });
