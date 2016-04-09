@@ -132,8 +132,10 @@ class SimianGrid extends React.Component {
 
 
   renderCell(data, rowIndex, cellIndex) {
+    let columnDefinition = this.props.columnDefinition[cellIndex];
+    let className = columnDefinition ? columnDefinition.className : '';
     return (
-      <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()}>
+      <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()} className={className}>
         {data}
       </td>
     );
@@ -157,7 +159,7 @@ class SimianGrid extends React.Component {
   @autobind
   renderHeaderCell(cellTemplate, index) {
     return (
-      <td key={`header-cell-${index}`} style={this.getCellStyle()}>
+      <td key={`header-cell-${index}`} style={this.getCellStyle()} className={cellTemplate.className}>
         {cellTemplate.title}
       </td>
     );
@@ -228,6 +230,17 @@ class SimianGrid extends React.Component {
     );
   }
 }
+
+
+SimianGrid.propTypes = {
+  rows: React.PropTypes.arrayOf(React.PropTypes.array),
+  numTotalRows: React.PropTypes.number,
+  columnDefinition: React.PropTypes.arrayOf(React.PropTypes.shape({
+    title: React.PropTypes.string,
+    className: React.PropTypes.string
+  })),
+  rowHeight: React.PropTypes.number
+};
 
 
 module.exports = SimianGrid;
