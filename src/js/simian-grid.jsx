@@ -18,10 +18,20 @@ function greater(a, b){
 
 
 var NUM_BUFFER_ROWS = 5;
+var LOAD_PAGE_SIZE = 60;
 var OUTER_WRAPPER_STYLE = {
   overflow: 'auto',
   height: '100%',
   width: '100%'
+};
+
+var NO_ROWS_COMPONENT_STYLE = {
+  whiteSpace: 'nowrap',
+  position: 'absolute',
+  fontSize: '5em',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)'
 };
 
 var CLASS_NAME = {
@@ -31,7 +41,9 @@ var CLASS_NAME = {
   ODD: 'odd',
   HEADER_ROW: 'header',
   DUMMY: 'dummy',
-  OUTER_WRAPPER: 'simiangrid-wrapper'
+  OUTER_WRAPPER: 'simiangrid-wrapper',
+  NO_ROWS_COMPONENT: 'simian-grid-no-rows-component',
+  LOADING_COMPONENT: 'simian-grid-loading-component'
 };
 
 var REF_NAME = {
@@ -44,30 +56,65 @@ class SimianGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      innerWrapperHeight: 0
+      innerWrapperHeight: 0,
+      rows: []
     };
+    window._grid = this;
   }
 
 
   // =============== Logic =========================================================================================================
 
   updateSelf(addendum) {
+    if(!addendum)
+      addendum = {}
+    let state = this.state;
     let props = this.props;
+    let isLoadingRows = false;
+    let availRows = addendum.rows || state.rows; //concat without arguments doesn't throw an error
+    let numAvailRows = availRows.length;
     let rowHeight = props.rowHeight;
     let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     let numTotalRows = props.numTotalRows;
+
     let innerWrapperHeight = numTotalRows * rowHeight;
     let cursorSize = Math.floor(wrapper.clientHeight / rowHeight);
     let numRowsAboveTheTopEdge = Math.floor(wrapper.scrollTop / rowHeight);
     let tableTopPos = ((numRowsAboveTheTopEdge - NUM_BUFFER_ROWS) * rowHeight) + (wrapper.scrollTop % rowHeight);
+    let lowerBound = greater(numRowsAboveTheTopEdge - NUM_BUFFER_ROWS, 0);
+    let upperBound = lesser(numRowsAboveTheTopEdge + cursorSize + NUM_BUFFER_ROWS, numTotalRows);
+    let isMoreRowsRequired = false;
+    if (upperBound > numAvailRows) {
+      isLoadingRows = true;
+      isMoreRowsRequired = !state.isLoadingRows; //Dont ask for more rows if we are already loading
+      upperBound = numAvailRows;
+      lowerBound = greater(lowerBound, numAvailRows - cursorSize - NUM_BUFFER_ROWS);
+    }
 
-    this.setState({
+    this.setState(_.merge(addendum, {
       numberOfDummyRows: greater(NUM_BUFFER_ROWS - numRowsAboveTheTopEdge, 0),
       innerWrapperHeight: innerWrapperHeight,
-      lowerBound: greater(numRowsAboveTheTopEdge - NUM_BUFFER_ROWS, 0),
-      upperBound: lesser(numRowsAboveTheTopEdge + cursorSize + NUM_BUFFER_ROWS, numTotalRows),
-      tableTopPos: tableTopPos
-    });
+      lowerBound: lowerBound,
+      upperBound: upperBound,
+      tableTopPos: tableTopPos,
+      isLoadingRows: isLoadingRows,
+      maxScrollTopAllowed: (numAvailRows - cursorSize + 3) * rowHeight,
+      rows: availRows
+    }));
+
+    if (isMoreRowsRequired) {
+      this.loadMoreRows(upperBound, LOAD_PAGE_SIZE);
+    }
+  }
+
+
+  loadMoreRows(loadFrom) {
+    this.props.getRowsFunction(loadFrom, LOAD_PAGE_SIZE)
+      .then(function(rows) {
+        this.updateSelf({
+          rows: this.state.rows.concat(rows)
+        });
+      }.bind(this));
   }
 
   // =============== Events =========================================================================================================
@@ -75,12 +122,35 @@ class SimianGrid extends React.Component {
   setUpEventListeners() {
     let outerWrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     outerWrapper.addEventListener('scroll', this.handleScroll);
+    outerWrapper.addEventListener('wheel', this.handleWheel);
     setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 25));
   }
 
 
+  rejectScrollIfLoading(evt) {
+    if (this.state.isLoadingRows) {
+      evt.preventDefault();
+      return true;
+    }
+  }
+
+
   @autobind
-  handleScroll() {
+  handleWheel(evt) {
+    //this.rejectScrollIfLoading(evt);
+    let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
+    let currentScrollTop = wrapper.scrollTop;
+    let maxScrollTopAllowed = this.state.maxScrollTopAllowed;
+    if (currentScrollTop >= maxScrollTopAllowed || currentScrollTop + evt.deltaY >= maxScrollTopAllowed) {
+      evt.preventDefault();
+    }
+  }
+
+
+  @autobind
+  handleScroll(evt) {
+    //if (this.rejectScrollIfLoading(evt))
+    //  return;
     this.updateSelf();
   }
 
@@ -107,6 +177,23 @@ class SimianGrid extends React.Component {
       position: 'relative',
       overflow: 'hidden'
     };
+  }
+
+
+  getLoadingComponentStyle() {
+    return {
+      top: this.refs[REF_NAME.OUTER_WRAPPER].scrollTop + 100,
+      whiteSpace: 'nowrap',
+      fontSize: '3.5em',
+      background: 'rgba(0, 0, 0, 0.5)',
+      color: '#FFF',
+      borderRadius: '5px',
+      padding: '5px 10px',
+      position: 'absolute',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      boxShadow: '0px 0px 5px 1px rgba(0, 0, 0, 0.5)'
+    }
   }
 
 
@@ -195,7 +282,7 @@ class SimianGrid extends React.Component {
     let state = this.state;
     let lowerBound = state.lowerBound;
     let numRowsToRender = state.upperBound - lowerBound;
-    let rows = this.props.rows;
+    let rows = state.rows;
 
     let renderedRows = this.renderDummyRows(state.numberOfDummyRows);
     for(let i = 0; i < numRowsToRender; i++) {
@@ -220,12 +307,35 @@ class SimianGrid extends React.Component {
   }
 
 
+  renderNoRowsMessage() {
+    if (this.props.numTotalRows === 0)
+      return (
+        <div className={CLASS_NAME.NO_ROWS_COMPONENT} style={NO_ROWS_COMPONENT_STYLE}>
+          No Rows Found
+        </div>
+      );
+  }
+
+
+  renderLoadingComponent() {
+    if (this.state.isLoadingRows) {
+      return (
+        <div className={CLASS_NAME.LOADING_COMPONENT} style={this.getLoadingComponentStyle()}>
+          Loading . . .
+        </div>
+      );
+    }
+  }
+
+
   render() {
     return (
       <div className={CLASS_NAME.OUTER_WRAPPER} style={OUTER_WRAPPER_STYLE} ref={REF_NAME.OUTER_WRAPPER}>
         <div className={CLASS_NAME.INNER_WRAPPER} style={this.getInnerWrapperStyle()} ref={REF_NAME.INNER_WRAPPER}>
           {this.renderTable()}
+          {this.renderLoadingComponent()}
         </div>
+        {this.renderNoRowsMessage()}
       </div>
     );
   }
@@ -233,7 +343,7 @@ class SimianGrid extends React.Component {
 
 
 SimianGrid.propTypes = {
-  rows: React.PropTypes.arrayOf(React.PropTypes.array),
+  getRowsFunction: React.PropTypes.func,
   numTotalRows: React.PropTypes.number,
   columnDefinition: React.PropTypes.arrayOf(React.PropTypes.shape({
     title: React.PropTypes.string,
