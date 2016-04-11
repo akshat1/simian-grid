@@ -17,8 +17,8 @@ function greater(a, b){
 }
 
 
-var NUM_BUFFER_ROWS = 5;
-var LOAD_PAGE_SIZE = 60;
+var NUM_BUFFER_ROWS = 10;
+var DEFAULT_PAGE_SIZE = 60;
 var OUTER_WRAPPER_STYLE = {
   overflow: 'auto',
   height: '100%',
@@ -76,23 +76,24 @@ class SimianGrid extends React.Component {
     let rowHeight = props.rowHeight;
     let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     let numTotalRows = props.numTotalRows;
+    let numBufferRows = props.numBufferRows || NUM_BUFFER_ROWS;
 
     let innerWrapperHeight = numTotalRows * rowHeight;
     let cursorSize = Math.floor(wrapper.clientHeight / rowHeight);
     let numRowsAboveTheTopEdge = Math.floor(wrapper.scrollTop / rowHeight);
-    let tableTopPos = ((numRowsAboveTheTopEdge - NUM_BUFFER_ROWS) * rowHeight) + (wrapper.scrollTop % rowHeight);
-    let lowerBound = greater(numRowsAboveTheTopEdge - NUM_BUFFER_ROWS, 0);
-    let upperBound = lesser(numRowsAboveTheTopEdge + cursorSize + NUM_BUFFER_ROWS, numTotalRows);
+    let tableTopPos = ((numRowsAboveTheTopEdge - numBufferRows) * rowHeight) + (wrapper.scrollTop % rowHeight);
+    let lowerBound = greater(numRowsAboveTheTopEdge - numBufferRows, 0);
+    let upperBound = lesser(numRowsAboveTheTopEdge + cursorSize + numBufferRows, numTotalRows);
     let isMoreRowsRequired = false;
     if (upperBound > numAvailRows) {
       isLoadingRows = true;
       isMoreRowsRequired = !state.isLoadingRows; //Dont ask for more rows if we are already loading
       upperBound = numAvailRows;
-      lowerBound = greater(lowerBound, numAvailRows - cursorSize - NUM_BUFFER_ROWS);
+      lowerBound = greater(lowerBound, numAvailRows - cursorSize - numBufferRows);
     }
 
     this.setState(_.merge(addendum, {
-      numberOfDummyRows: greater(NUM_BUFFER_ROWS - numRowsAboveTheTopEdge, 0),
+      numberOfDummyRows: greater(numBufferRows - numRowsAboveTheTopEdge, 0),
       innerWrapperHeight: innerWrapperHeight,
       lowerBound: lowerBound,
       upperBound: upperBound,
@@ -103,18 +104,23 @@ class SimianGrid extends React.Component {
     }));
 
     if (isMoreRowsRequired) {
-      this.loadMoreRows(upperBound, LOAD_PAGE_SIZE);
+      this.loadMoreRows(upperBound);
     }
   }
 
 
   loadMoreRows(loadFrom) {
-    this.props.getRowsFunction(loadFrom, LOAD_PAGE_SIZE)
-      .then(function(rows) {
-        this.updateSelf({
-          rows: this.state.rows.concat(rows)
-        });
-      }.bind(this));
+    this.props.getRowsFunction(loadFrom, this.props.pageSize || DEFAULT_PAGE_SIZE)
+      .then(this.handleNewRows);
+  }
+
+
+  @autobind
+  handleNewRows(rows) {
+    this.updateSelf({
+      rows: this.state.rows.concat(rows),
+      isLoadingRows: false
+    });
   }
 
   // =============== Events =========================================================================================================
@@ -289,7 +295,7 @@ class SimianGrid extends React.Component {
       let row = rows[i + lowerBound];
       renderedRows.push(this.renderRow(row, lowerBound + i));
     }
-    renderedRows.splice(NUM_BUFFER_ROWS, 0, this.renderHeaderRow());
+    renderedRows.splice(this.props.numBufferRows || NUM_BUFFER_ROWS, 0, this.renderHeaderRow());
     return (
       <tbody>
         {renderedRows}
@@ -345,6 +351,8 @@ class SimianGrid extends React.Component {
 SimianGrid.propTypes = {
   getRowsFunction: React.PropTypes.func,
   numTotalRows: React.PropTypes.number,
+  numBufferRows: React.PropTypes.number,
+  pageSize: React.PropTypes.number,
   columnDefinition: React.PropTypes.arrayOf(React.PropTypes.shape({
     title: React.PropTypes.string,
     className: React.PropTypes.string
