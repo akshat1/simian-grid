@@ -109,7 +109,7 @@ class SimianGrid extends React.Component {
   }
 
 
-  loadMoreRows(loadFrom) {
+  loadMoreRows(loadFrom, howMany) {
     this.props.getRowsFunction(loadFrom, this.props.pageSize || DEFAULT_PAGE_SIZE)
       .then(this.handleNewRows);
   }
@@ -133,17 +133,8 @@ class SimianGrid extends React.Component {
   }
 
 
-  rejectScrollIfLoading(evt) {
-    if (this.state.isLoadingRows) {
-      evt.preventDefault();
-      return true;
-    }
-  }
-
-
   @autobind
   handleWheel(evt) {
-    //this.rejectScrollIfLoading(evt);
     let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
     let currentScrollTop = wrapper.scrollTop;
     let maxScrollTopAllowed = this.state.maxScrollTopAllowed;
@@ -155,8 +146,6 @@ class SimianGrid extends React.Component {
 
   @autobind
   handleScroll(evt) {
-    //if (this.rejectScrollIfLoading(evt))
-    //  return;
     this.updateSelf();
   }
 
@@ -180,8 +169,7 @@ class SimianGrid extends React.Component {
   getInnerWrapperStyle() {
     return {
       height: this.state.innerWrapperHeight,
-      position: 'relative',
-      overflow: 'hidden'
+      position: 'relative'
     };
   }
 

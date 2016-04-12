@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
           columnDefinition={model.columnDefinition}
           rowHeight={model.rowHeight}
           pageSize={100}
-          numBufferRows={25}
+          numBufferRows={50}
         />
       </div>,
       document.body
