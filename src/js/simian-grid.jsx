@@ -71,7 +71,7 @@ class SimianGrid extends React.Component {
     let state = this.state;
     let props = this.props;
     let isLoadingRows = false;
-    let availRows = addendum.rows || state.rows; //concat without arguments doesn't throw an error
+    let availRows = addendum.rows || state.rows;
     let numAvailRows = availRows.length;
     let rowHeight = props.rowHeight;
     let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
