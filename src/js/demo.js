@@ -59,27 +59,27 @@ var columnDefinition = [{
 
 
 function getRows(from, num) {
-  console.log(`getRows(${from}, ${num})`);
   return new Promise(function(resolve, reject) {
     var rows = generateData(num, dataTemplate);
     if(from !== 0)
       rows.forEach(function(row) {
         row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
       });
-    resolve(rows);
+    // Simulate data fetch lag
+    setTimeout(function() {
+      resolve(rows);
+    }, 250);
   });
 }
 
 
 function makeDataModel() {
-  return getRows(0, MAX_ROWS).then(function(rows) {
-    return {
-      columnDefinition: columnDefinition,
-      rowHeight: 40,
-      numTotalRows: MAX_ROWS,
-      rows: rows
-    };
-  });
+  return {
+    columnDefinition: columnDefinition,
+    rowHeight: 40,
+    numTotalRows: MAX_ROWS,
+    getRowsFunction: getRows
+  };
 }
 
 
@@ -97,7 +97,7 @@ function insertStyleRules() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-  makeDataModel().then(function(model) {
+    var model = makeDataModel();
     window.model = model;
     insertStyleRules();
     var demoRootStyle = {
@@ -111,13 +111,14 @@ document.addEventListener('DOMContentLoaded', function() {
     ReactDOM.render(
       <div id = 'demoRoot' style = {demoRootStyle}>
         <SimianGrid
-          rows={model.rows}
+          getRowsFunction={model.getRowsFunction}
           numTotalRows={model.numTotalRows}
           columnDefinition={model.columnDefinition}
           rowHeight={model.rowHeight}
+          pageSize={100}
+          numBufferRows={50}
         />
       </div>,
       document.body
     );
-  });
 });
