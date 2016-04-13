@@ -68,7 +68,7 @@ function getRows(from, num) {
     // Simulate data fetch lag
     setTimeout(function() {
       resolve(rows);
-    }, 250);
+    }, Math.random() * 100);
   });
 }
 
@@ -76,47 +76,24 @@ function getRows(from, num) {
 function makeDataModel() {
   return {
     columnDefinition: columnDefinition,
-    rowHeight: 40,
+    rowHeight: 50,
     numTotalRows: MAX_ROWS,
     getRowsFunction: getRows
   };
 }
 
 
-function insertStyleRules() {
-  var sheetElement = document.createElement('style');
-  sheetElement.appendChild(document.createTextNode(''));
-  document.head.appendChild(sheetElement);
-
-  var sheet = document.styleSheets[0];
-  sheet.insertRule(".even { background: #DDEEFF; }", 0);
-  sheet.insertRule(".odd { background: #FFF; }", 0);
-  sheet.insertRule(".header { background: #1ACEF7; color: #FFF; }", 0);
-  sheet.insertRule("td { padding: 5px; }", 0);
-}
-
-
 document.addEventListener('DOMContentLoaded', function() {
     var model = makeDataModel();
-    window.model = model;
-    insertStyleRules();
-    var demoRootStyle = {
-      border: '1px solid black',
-      width: '85vw',
-      height: '85vh',
-      fontFamily: 'sans-serif',
-      color: '#000',
-      margin: '20px auto'
-    };
     ReactDOM.render(
-      <div id = 'demoRoot' style = {demoRootStyle}>
+      <div id = 'demoRoot'>
         <SimianGrid
-          getRowsFunction={model.getRowsFunction}
-          numTotalRows={model.numTotalRows}
-          columnDefinition={model.columnDefinition}
-          rowHeight={model.rowHeight}
-          pageSize={100}
-          numBufferRows={50}
+          getRowsFunction = {model.getRowsFunction}
+          numTotalRows = {model.numTotalRows}
+          columnDefinition = {model.columnDefinition}
+          rowHeight = {model.rowHeight}
+          pageSize = {1000}
+          numBufferRows = {25}
         />
       </div>,
       document.body
