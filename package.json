@@ -1,6 +1,6 @@
 {
   "name": "simian-grid",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React based infinite scrolling grid",
   "main": "lib/simian-grid.js",
   "scripts": {
@@ -33,16 +33,16 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-serve": "^1.2.0",
-    "random-string": "^0.1.2"
-  },
-  "dependencies": {
+    "random-string": "^0.1.2",
     "autobind-decorator": "^1.3.3",
     "element-resize-event": "^2.0.3",
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
     "vinyl-source-stream": "^1.1.0",
     "react": "^0.14.7",
-    "lodash": "^4.6.1",
     "react-dom": "^0.14.7"
+  },
+  "dependencies": {
+    "lodash": "^4.6.1"
   }
 }
