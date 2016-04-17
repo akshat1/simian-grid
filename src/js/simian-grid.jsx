@@ -1,7 +1,6 @@
 'use strict';
 
 var React = require('react');
-var ReactDOM = require('react-dom');
 var autobind = require('autobind-decorator');
 var _ = require('lodash');
 var setupResizeHandling = require('element-resize-event');
