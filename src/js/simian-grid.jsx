@@ -58,17 +58,16 @@ class SimianGrid extends React.Component {
       innerWrapperHeight: 0,
       rows: []
     };
-    window._grid = this;
   }
 
 
   // =============== Logic =========================================================================================================
 
-  updateSelf(addendum) {
+  updateSelf(addendum, nextProps) {
     if(!addendum)
       addendum = {}
     let state = this.state;
-    let props = this.props;
+    let props = _.merge({}, this.props, nextProps);
     let isLoadingRows = false;
     let availRows = addendum.rows || state.rows;
     let numAvailRows = availRows.length;
@@ -160,6 +159,11 @@ class SimianGrid extends React.Component {
   componentDidMount() {
     this.setUpEventListeners();
     this.updateSelf();
+  }
+
+
+  componentWillReceiveProps(nextProps) {
+    this.updateSelf(null, nextProps);
   }
 
 
