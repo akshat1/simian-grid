@@ -261,11 +261,12 @@ class SimianGrid extends React.Component {
 
 
   renderDummyRows(numDummyRows) {
+    let colSpan = this.props.columnDefinition.length;
     var rows = [];
     for (var i = 0; i < numDummyRows; i++) {
       rows.push(
         <tr className={CLASS_NAME.DUMMY} key={`dummy-row-${i}`}>
-          <td style={this.getCellStyle()}>
+          <td style={this.getCellStyle()} colSpan={colSpan}>
             DUMMY
           </td>
         </tr>
@@ -345,7 +346,6 @@ SimianGrid.propTypes = {
   numBufferRows: React.PropTypes.number,
   pageSize: React.PropTypes.number,
   columnDefinition: React.PropTypes.arrayOf(React.PropTypes.shape({
-    title: React.PropTypes.string,
     className: React.PropTypes.string
   })),
   rowHeight: React.PropTypes.number
