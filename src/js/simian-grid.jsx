@@ -1,9 +1,9 @@
 'use strict';
 
-var React = require('react');
-var autobind = require('autobind-decorator');
-var _ = require('lodash');
-var setupResizeHandling = require('element-resize-event');
+const React = require('react');
+const autobind = require('autobind-decorator');
+const _ = require('lodash');
+const setupResizeHandling = require('element-resize-event');
 
 
 function lesser(a, b){
@@ -16,15 +16,15 @@ function greater(a, b){
 }
 
 
-var NUM_BUFFER_ROWS = 10;
-var DEFAULT_PAGE_SIZE = 60;
-var OUTER_WRAPPER_STYLE = {
+const NUM_BUFFER_ROWS = 10;
+const DEFAULT_PAGE_SIZE = 60;
+const OUTER_WRAPPER_STYLE = {
   overflow: 'auto',
   height: '100%',
   width: '100%'
 };
 
-var NO_ROWS_COMPONENT_STYLE = {
+const NO_ROWS_COMPONENT_STYLE = {
   whiteSpace: 'nowrap',
   position: 'absolute',
   fontSize: '5em',
@@ -33,7 +33,7 @@ var NO_ROWS_COMPONENT_STYLE = {
   transform: 'translate(-50%, -50%)'
 };
 
-var CLASS_NAME = {
+const CLASS_NAME = {
   OUTER_WRAPPER: 'simiangrid-wrapper',
   INNER_WRAPPER: 'simiangrid-inner-wrapper',
   EVEN: 'even',
@@ -45,7 +45,7 @@ var CLASS_NAME = {
   LOADING_COMPONENT: 'simian-grid-loading-component'
 };
 
-var REF_NAME = {
+const REF_NAME = {
   OUTER_WRAPPER: 'outer-wrapper',
   INNER_WRAPPER: 'inner-wrapper'
 };
