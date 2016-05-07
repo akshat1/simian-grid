@@ -59,43 +59,69 @@ var columnDefinition = [{
 
 
 function getRows(from, num) {
-  return new Promise(function(resolve, reject) {
-    var rows = generateData(num, dataTemplate);
-    if(from !== 0)
-      rows.forEach(function(row) {
-        row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
-      });
-    // Simulate data fetch lag
-    setTimeout(function() {
-      resolve(rows);
-    }, Math.random() * 100);
-  });
+  var rows = generateData(num, dataTemplate);
+  if(from !== 0)
+    rows.forEach(function(row) {
+      row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
+    });
+  return Promise.resolve(rows);
 }
 
 
-function makeDataModel() {
-  return {
-    columnDefinition: columnDefinition,
-    rowHeight: 50,
-    numTotalRows: MAX_ROWS,
-    getRowsFunction: getRows
-  };
+class Demo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      rows: []
+    };
+    this.onMoreRowsNeeded = this.onMoreRowsNeeded.bind(this);
+  }
+
+
+  onMoreRowsNeeded(from, numItems) {
+    let _self = this;
+    getRows(from, numItems)
+    .then(function(newRows) {
+      _self.setState({
+        isLoading: false,
+        rows: _self.state.rows.concat(newRows)
+      });
+    });
+
+    this.setState({
+      isLoading: true
+    });
+  }
+
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.state.rows !== nextState.rows;
+  }
+
+
+  render() {
+    return (
+      <div id = 'demoRoot'>
+        <SimianGrid
+          ref              = 'SIMIAN_GRID'
+          rows             = {this.state.rows}
+          onMoreRowsNeeded = {this.onMoreRowsNeeded}
+          isLoading        = {this.state.isLoading}
+          numTotalRows     = {MAX_ROWS}
+          columnDefinition = {columnDefinition}
+          rowHeight        = {50}
+          pageSize         = {1000}
+          numBufferRows    = {25}
+        />
+      </div>
+    );
+  }
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    var model = makeDataModel();
     ReactDOM.render(
-      <div id = 'demoRoot'>
-        <SimianGrid
-          getRowsFunction = {model.getRowsFunction}
-          numTotalRows = {model.numTotalRows}
-          columnDefinition = {model.columnDefinition}
-          rowHeight = {model.rowHeight}
-          pageSize = {1000}
-          numBufferRows = {25}
-        />
-      </div>,
+      <Demo />,
       document.body
     );
 });
