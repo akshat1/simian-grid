@@ -55,8 +55,7 @@ class SimianGrid extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      innerWrapperHeight: 0,
-      rows: []
+      innerWrapperHeight: 0
     };
   }
 
@@ -69,7 +68,7 @@ class SimianGrid extends React.Component {
     let state = this.state;
     let props = _.merge({}, this.props, nextProps);
     let isLoadingRows = false;
-    let availRows = addendum.rows || state.rows;
+    let availRows = addendum.rows || props.rows;
     let numAvailRows = availRows.length;
     let rowHeight = props.rowHeight;
     let wrapper = this.refs[REF_NAME.OUTER_WRAPPER];
@@ -97,8 +96,7 @@ class SimianGrid extends React.Component {
       upperBound: upperBound,
       tableTopPos: tableTopPos,
       isLoadingRows: isLoadingRows,
-      maxScrollTopAllowed: (numAvailRows - cursorSize + 3) * rowHeight,
-      rows: availRows
+      maxScrollTopAllowed: (numAvailRows - cursorSize + 3) * rowHeight
     }));
 
     if (isMoreRowsRequired) {
@@ -108,18 +106,11 @@ class SimianGrid extends React.Component {
 
 
   loadMoreRows(loadFrom, howMany) {
-    this.props.getRowsFunction(loadFrom, this.props.pageSize || DEFAULT_PAGE_SIZE)
-      .then(this.handleNewRows);
+    let onMoreRowsNeeded = this.props.onMoreRowsNeeded
+    if (typeof onMoreRowsNeeded === 'function')
+      onMoreRowsNeeded(loadFrom, this.props.pageSize || DEFAULT_PAGE_SIZE);
   }
 
-
-  @autobind
-  handleNewRows(rows) {
-    this.updateSelf({
-      rows: this.state.rows.concat(rows),
-      isLoadingRows: false
-    });
-  }
 
   // =============== Events =========================================================================================================
 
@@ -229,7 +220,7 @@ class SimianGrid extends React.Component {
   renderRow(row, index) {
     let evenOdd = index % 2 === 0 ? 'even' : 'odd';
     let renderedCells = [];
-    for (var i = 0, len = row.length; i < len; i++)
+    for (let i = 0, len = row.length; i < len; i++)
       renderedCells.push(this.renderCell(row[i], index, i));
 
     return (
@@ -262,8 +253,8 @@ class SimianGrid extends React.Component {
 
   renderDummyRows(numDummyRows) {
     let colSpan = this.props.columnDefinition.length;
-    var rows = [];
-    for (var i = 0; i < numDummyRows; i++) {
+    let rows = [];
+    for (let i = 0; i < numDummyRows; i++) {
       rows.push(
         <tr className={CLASS_NAME.DUMMY} key={`dummy-row-${i}`}>
           <td style={this.getCellStyle()} colSpan={colSpan}>
@@ -280,7 +271,7 @@ class SimianGrid extends React.Component {
     let state = this.state;
     let lowerBound = state.lowerBound;
     let numRowsToRender = state.upperBound - lowerBound;
-    let rows = state.rows;
+    let rows = this.props.rows;
 
     let renderedRows = this.renderDummyRows(state.numberOfDummyRows);
     for(let i = 0; i < numRowsToRender; i++) {
@@ -316,7 +307,7 @@ class SimianGrid extends React.Component {
 
 
   renderLoadingComponent() {
-    if (this.state.isLoadingRows) {
+    if (this.props.isLoading) {
       return (
         <div className={CLASS_NAME.LOADING_COMPONENT} style={this.getLoadingComponentStyle()}>
           Loading . . .
@@ -341,14 +332,15 @@ class SimianGrid extends React.Component {
 
 
 SimianGrid.propTypes = {
-  getRowsFunction: React.PropTypes.func,
-  numTotalRows: React.PropTypes.number,
-  numBufferRows: React.PropTypes.number,
-  pageSize: React.PropTypes.number,
-  columnDefinition: React.PropTypes.arrayOf(React.PropTypes.shape({
+  onMoreRowsNeeded : React.PropTypes.func,
+  rows             : React.PropTypes.array.isRequired,
+  numTotalRows     : React.PropTypes.number.isRequired,
+  numBufferRows    : React.PropTypes.number,
+  pageSize         : React.PropTypes.number,
+  rowHeight        : React.PropTypes.number.isRequired,
+  columnDefinition : React.PropTypes.arrayOf(React.PropTypes.shape({
     className: React.PropTypes.string
-  })),
-  rowHeight: React.PropTypes.number
+  })).isRequired
 };
 
 
