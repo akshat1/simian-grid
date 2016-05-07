@@ -3,7 +3,8 @@
 Yet another react grid component.
 
 Props:
-- getRowsFunction: function(beginIndex, numItems){ ... return promise;} // A function which returns a Promise, which resolves with an array of arrays
+- onMoreRowsNeeded function(beginIndex, numItems){} // signal the need for more rows
+- rows []               // an array of rows, with each row being an array itself
 - numTotalRows          // total rows in the system. We use this to setup scrolling. Needed this for lazy loading (WIP)
 - columnDefinition [{}] // contains information about each column {title, className}
 - rowHeight             // px height of each row; For now, this must be fixed and same for all rows
