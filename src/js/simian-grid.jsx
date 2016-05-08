@@ -36,6 +36,7 @@ const NO_ROWS_COMPONENT_STYLE = {
 const CLASS_NAME = {
   OUTER_WRAPPER: 'simiangrid-wrapper',
   INNER_WRAPPER: 'simiangrid-inner-wrapper',
+  LIST_CONTAINER: 'simian-grod-list-container',
   EVEN: 'even',
   ODD: 'odd',
   HEADER_ROW: 'header',
@@ -195,6 +196,26 @@ class SimianGrid extends React.Component {
   }
 
 
+  getListStyle() {
+    return {
+      top: this.state.tableTopPos,
+      width: '100%',
+      position: 'absolute'
+    }
+  }
+
+
+  getListRowStyle() {
+    return {
+      boxSizing: 'border-box',
+      height: this.props.rowHeight,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    };
+  }
+
+
   getCellStyle() {
     return {
       boxSizing: 'border-box',
@@ -217,7 +238,7 @@ class SimianGrid extends React.Component {
   }
 
 
-  renderRow(row, index) {
+  renderTableRow(row, index) {
     let evenOdd = index % 2 === 0 ? 'even' : 'odd';
     let renderedCells = [];
     for (let i = 0, len = row.length; i < len; i++)
@@ -232,7 +253,7 @@ class SimianGrid extends React.Component {
 
 
   @autobind
-  renderHeaderCell(cellTemplate, index) {
+  renderHeaderTableCell(cellTemplate, index) {
     return (
       <td key={`header-cell-${index}`} style={this.getCellStyle()} className={cellTemplate.className}>
         {cellTemplate.title}
@@ -241,8 +262,9 @@ class SimianGrid extends React.Component {
   }
 
 
-  renderHeaderRow() {
-    let cells = this.props.columnDefinition.map(this.renderHeaderCell);
+  @autobind
+  renderHeaderTableRow() {
+    let cells = this.props.columnDefinition.map(this.renderHeaderTableCell);
     return (
       <tr className={CLASS_NAME.HEADER_ROW} key='header-row'>
         {cells}
@@ -251,7 +273,8 @@ class SimianGrid extends React.Component {
   }
 
 
-  renderDummyRows(numDummyRows) {
+  @autobind
+  renderDummyTableRows(numDummyRows) {
     let colSpan = this.props.columnDefinition.length;
     let rows = [];
     for (let i = 0; i < numDummyRows; i++) {
@@ -267,31 +290,76 @@ class SimianGrid extends React.Component {
   }
 
 
-  renderBody() {
+  renderRow(row, index) {
+    let evenOdd = index % 2 === 0 ? 'even' : 'odd';
+    return (
+      <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()}>
+        {row}
+      </div>
+    );
+  }
+
+
+  renderHeaderRow() {
+    return (
+      <div className={CLASS_NAME.HEADER_ROW}>
+        {this.props.headerRow}
+      </div>
+    );
+  }
+
+
+  @autobind
+  renderDummyRows(numDummyRows) {
+    let colSpan = this.props.columnDefinition.length;
+    let rows = [];
+    for (let i = 0; i < numDummyRows; i++) {
+      rows.push(
+        <div className={CLASS_NAME.DUMMY} key={`dummy-row-${i}`}>
+          DUMMY
+        </div>
+      );
+    }
+    return rows;
+  }
+
+
+  renderBody(noTable) {
     let state = this.state;
     let lowerBound = state.lowerBound;
     let numRowsToRender = state.upperBound - lowerBound;
     let rows = this.props.rows;
 
-    let renderedRows = this.renderDummyRows(state.numberOfDummyRows);
+    let renderedRows = (noTable ? this.renderDummyRows : this.renderDummyTableRows)(state.numberOfDummyRows);
     for(let i = 0; i < numRowsToRender; i++) {
       let row = rows[i + lowerBound];
-      renderedRows.push(this.renderRow(row, lowerBound + i));
+      if (noTable)
+        renderedRows.push(this.renderRow(row, lowerBound + i));
+      else
+        renderedRows.push(this.renderTableRow(row, lowerBound + i));
     }
-    renderedRows.splice(this.props.numBufferRows || NUM_BUFFER_ROWS, 0, this.renderHeaderRow());
-    return (
-      <tbody>
-        {renderedRows}
-      </tbody>
-    );
+    let headerRow = noTable ? this.renderHeaderRow() : this.renderHeaderTableRow();
+    renderedRows.splice(this.props.numBufferRows || NUM_BUFFER_ROWS, 0, headerRow);
+    return renderedRows;
   }
 
 
   renderTable() {
     return (
       <table style={this.getTableStyle()}>
-        {this.renderBody()}
+        <tbody>
+          {this.renderBody()}
+        </tbody>
       </table>
+    );
+  }
+
+
+  renderList() {
+    return (
+      <div style={this.getListStyle()} className={CLASS_NAME.LIST_CONTAINER}>
+        {this.renderBody(true)}
+      </div>
     );
   }
 
@@ -321,7 +389,7 @@ class SimianGrid extends React.Component {
     return (
       <div className={CLASS_NAME.OUTER_WRAPPER} style={OUTER_WRAPPER_STYLE} ref={REF_NAME.OUTER_WRAPPER}>
         <div className={CLASS_NAME.INNER_WRAPPER} style={this.getInnerWrapperStyle()} ref={REF_NAME.INNER_WRAPPER}>
-          {this.renderTable()}
+          {this.props.noTable ? this.renderList() : this.renderTable()}
           {this.renderLoadingComponent()}
         </div>
         {this.renderNoRowsMessage()}
