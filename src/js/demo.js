@@ -60,10 +60,13 @@ var columnDefinition = [{
 
 function getRows(from, num) {
   var rows = generateData(num, dataTemplate);
-  if(from !== 0)
-    rows.forEach(function(row) {
+  rows.forEach(function(row) {
+    if(from !== 0)
       row[0] += from; //We already know this is the count; So a little hack instead of changing datagen for now
-    });
+    row[1] = {
+      __html: `<span style="color: red">${row[1]}</span>`
+    };
+  });
   return Promise.resolve(rows);
 }
 

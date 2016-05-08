@@ -36,7 +36,7 @@ const NO_ROWS_COMPONENT_STYLE = {
 const CLASS_NAME = {
   OUTER_WRAPPER: 'simiangrid-wrapper',
   INNER_WRAPPER: 'simiangrid-inner-wrapper',
-  LIST_CONTAINER: 'simian-grod-list-container',
+  LIST_CONTAINER: 'simian-grid-list-container',
   EVEN: 'even',
   ODD: 'odd',
   HEADER_ROW: 'header',
@@ -230,11 +230,17 @@ class SimianGrid extends React.Component {
   renderCell(data, rowIndex, cellIndex) {
     let columnDefinition = this.props.columnDefinition[cellIndex];
     let className = columnDefinition ? columnDefinition.className : '';
-    return (
-      <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()} className={className}>
-        {data}
-      </td>
-    );
+    if (data.__html) {
+      return (
+        <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()} className={className} dangerouslySetInnerHTML={data}>
+        </td>
+      );
+    } else
+      return (
+        <td key={`cell-${rowIndex}-${cellIndex}`} style={this.getCellStyle()} className={className}>
+          {data}
+        </td>
+      );
   }
 
 
@@ -254,11 +260,20 @@ class SimianGrid extends React.Component {
 
   @autobind
   renderHeaderTableCell(cellTemplate, index) {
-    return (
-      <td key={`header-cell-${index}`} style={this.getCellStyle()} className={cellTemplate.className}>
-        {cellTemplate.title}
-      </td>
-    );
+    if (cellTemplate.titleHTML) {
+      let oHTML = {
+        __html: cellTemplate.titleHTML
+      };
+      return (
+        <td key={`header-cell-${index}`} style={this.getCellStyle()} className={cellTemplate.className} dangerouslySetInnerHTML={oHTML}>
+        </td>
+      );
+    } else
+      return (
+        <td key={`header-cell-${index}`} style={this.getCellStyle()} className={cellTemplate.className}>
+          {cellTemplate.title}
+        </td>
+      );
   }
 
 
@@ -292,20 +307,33 @@ class SimianGrid extends React.Component {
 
   renderRow(row, index) {
     let evenOdd = index % 2 === 0 ? 'even' : 'odd';
-    return (
-      <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()}>
-        {row}
-      </div>
-    );
+    if (row.__html) {
+      return (
+        <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
+        </div>
+      );
+    } else
+      return (
+        <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()}>
+          {row.component || row}
+        </div>
+      );
   }
 
 
   renderHeaderRow() {
-    return (
-      <div className={CLASS_NAME.HEADER_ROW}>
-        {this.props.headerRow}
-      </div>
-    );
+    let row = this.props.headerRow;
+    if (row.__html) {
+      return (
+        <div className={CLASS_NAME.HEADER_ROW} dangerouslySetInnerHTML={row}>
+        </div>
+      );
+    } else
+      return (
+        <div className={CLASS_NAME.HEADER_ROW}>
+          {row.component || row}
+        </div>
+      );
   }
 
 
