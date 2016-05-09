@@ -43,7 +43,8 @@ const CLASS_NAME = {
   DUMMY: 'dummy',
   OUTER_WRAPPER: 'simiangrid-wrapper',
   NO_ROWS_COMPONENT: 'simian-grid-no-rows-component',
-  LOADING_COMPONENT: 'simian-grid-loading-component'
+  LOADING_COMPONENT: 'simian-grid-loading-component',
+  LIST_ROW: 'simian-grid-list-row'
 };
 
 const REF_NAME = {
@@ -309,12 +310,12 @@ class SimianGrid extends React.Component {
     let evenOdd = index % 2 === 0 ? 'even' : 'odd';
     if (row.__html) {
       return (
-        <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
+        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
         </div>
       );
     } else
       return (
-        <div className={`${evenOdd} simian-grid-row`} key={index} style={this.getListRowStyle()}>
+        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()}>
           {row.component || row}
         </div>
       );
@@ -343,7 +344,7 @@ class SimianGrid extends React.Component {
     let rows = [];
     for (let i = 0; i < numDummyRows; i++) {
       rows.push(
-        <div className={CLASS_NAME.DUMMY} key={`dummy-row-${i}`}>
+        <div className={`${CLASS_NAME.DUMMY} ${CLASS_NAME.LIST_ROW}`} key={`dummy-row-${i}`}>
           DUMMY
         </div>
       );
