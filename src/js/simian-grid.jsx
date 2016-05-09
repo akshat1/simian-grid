@@ -344,7 +344,7 @@ class SimianGrid extends React.Component {
     let rows = [];
     for (let i = 0; i < numDummyRows; i++) {
       rows.push(
-        <div className={`${CLASS_NAME.DUMMY} ${CLASS_NAME.LIST_ROW}`} key={`dummy-row-${i}`}>
+        <div className={`${CLASS_NAME.DUMMY} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()} key={`dummy-row-${i}`}>
           DUMMY
         </div>
       );
