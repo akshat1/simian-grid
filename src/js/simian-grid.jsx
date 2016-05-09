@@ -326,12 +326,12 @@ class SimianGrid extends React.Component {
     let row = this.props.headerRow;
     if (row.__html) {
       return (
-        <div className={CLASS_NAME.HEADER_ROW} dangerouslySetInnerHTML={row}>
+        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
         </div>
       );
     } else
       return (
-        <div className={CLASS_NAME.HEADER_ROW}>
+        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()}>
           {row.component || row}
         </div>
       );
