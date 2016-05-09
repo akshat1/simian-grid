@@ -121,6 +121,27 @@ class SimianGrid extends React.Component {
     outerWrapper.addEventListener('scroll', this.handleScroll);
     outerWrapper.addEventListener('wheel', this.handleWheel);
     setupResizeHandling(outerWrapper, _.debounce(this.handleResize, 25));
+    this.wireEventsMap(this.props.events);
+  }
+
+
+  wireEventsMap(eventsMap) {
+    let outerWrapper = this.refs[REF_NAME.OUTER_WRAPPER];
+    if(!outerWrapper)
+      return;
+
+    for (let eventName in eventsMap)
+      outerWrapper.addEventListener(eventName, eventsMap[eventName]);
+  }
+
+
+  unWireEventsMap(eventsMap) {
+    let outerWrapper = this.refs[REF_NAME.OUTER_WRAPPER];
+    if(!outerWrapper)
+      return;
+
+    for (let eventName in eventsMap)
+      outerWrapper.removeEventListener(eventName, eventsMap[eventName]);
   }
 
 
@@ -156,6 +177,8 @@ class SimianGrid extends React.Component {
 
 
   componentWillReceiveProps(nextProps) {
+    this.unWireEventsMap(this.props.events);
+    this.wireEventsMap(nextProps.events);
     this.updateSelf(null, nextProps);
   }
 

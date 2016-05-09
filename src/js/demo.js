@@ -71,6 +71,13 @@ function getRows(from, num) {
 }
 
 
+const EventsMap = {
+  click: function() {
+    console.log('Grid was clicked', arguments);
+  }
+};
+
+
 class Demo extends React.Component {
   constructor(props) {
     super(props);
@@ -115,6 +122,7 @@ class Demo extends React.Component {
           rowHeight        = {50}
           pageSize         = {1000}
           numBufferRows    = {25}
+          events           = {EventsMap}
         />
       </div>
     );
