@@ -223,7 +223,7 @@ class SimianGrid extends React.Component {
   getListStyle() {
     return {
       top: this.state.tableTopPos,
-      width: '100%',
+      min-width: '100%',
       position: 'absolute'
     }
   }
