@@ -64,11 +64,11 @@ class SimianGrid extends React.Component {
 
   // =============== Logic =========================================================================================================
 
-  updateSelf(addendum, nextProps) {
+  updateSelf(addendum, nextProps, rowNumber) {
     if(!addendum)
       addendum = {}
     let state = this.state;
-    let props = _.merge({}, this.props, nextProps);
+    let props = _.assign({}, this.props, nextProps);
     let isLoadingRows = false;
     let availRows = addendum.rows || props.rows;
     let numAvailRows = availRows.length;
@@ -79,7 +79,16 @@ class SimianGrid extends React.Component {
 
     let innerWrapperHeight = numTotalRows * rowHeight;
     let cursorSize = Math.floor(wrapper.clientHeight / rowHeight);
-    let numRowsAboveTheTopEdge = Math.floor(wrapper.scrollTop / rowHeight);
+
+    let numRowsAboveTheTopEdge;
+    if (typeof rowNumber === 'number') {
+      // Props described which row number to display at the top.
+      numRowsAboveTheTopEdge = greater(rowNumber - 1, 0);
+      wrapper.scrollTop = numRowsAboveTheTopEdge * rowHeight;
+    }
+    else
+      numRowsAboveTheTopEdge = Math.floor(wrapper.scrollTop / rowHeight);
+
     let tableTopPos = ((numRowsAboveTheTopEdge - numBufferRows) * rowHeight) + (wrapper.scrollTop % rowHeight);
     let lowerBound = greater(numRowsAboveTheTopEdge - numBufferRows, 0);
     let upperBound = lesser(numRowsAboveTheTopEdge + cursorSize + numBufferRows, numTotalRows);
@@ -179,7 +188,7 @@ class SimianGrid extends React.Component {
   componentWillReceiveProps(nextProps) {
     this.unWireEventsMap(this.props.events);
     this.wireEventsMap(nextProps.events);
-    this.updateSelf(null, nextProps);
+    this.updateSelf(null, nextProps, nextProps.rowNumber);
   }
 
 
@@ -223,7 +232,7 @@ class SimianGrid extends React.Component {
   getListStyle() {
     return {
       top: this.state.tableTopPos,
-      'min-width': '100%',
+      minWidth: '100%',
       position: 'absolute'
     }
   }
@@ -333,12 +342,12 @@ class SimianGrid extends React.Component {
     let evenOdd = index % 2 === 0 ? 'even' : 'odd';
     if (row.__html) {
       return (
-        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
+        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()} dangerouslySetInnerHTML={row} key={index}>
         </div>
       );
     } else
       return (
-        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()}>
+        <div className={`${evenOdd} ${CLASS_NAME.LIST_ROW}`} key={index} style={this.getListRowStyle()} key={index}>
           {row.component || row}
         </div>
       );
@@ -349,12 +358,12 @@ class SimianGrid extends React.Component {
     let row = this.props.headerRow;
     if (row.__html) {
       return (
-        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()} dangerouslySetInnerHTML={row}>
+        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()} dangerouslySetInnerHTML={row} key='header-row'>
         </div>
       );
     } else
       return (
-        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()}>
+        <div className={`${CLASS_NAME.HEADER_ROW} ${CLASS_NAME.LIST_ROW}`} style={this.getListRowStyle()} key='header-row'>
           {row.component || row}
         </div>
       );
@@ -460,7 +469,9 @@ SimianGrid.propTypes = {
   rowHeight        : React.PropTypes.number.isRequired,
   columnDefinition : React.PropTypes.arrayOf(React.PropTypes.shape({
     className: React.PropTypes.string
-  })).isRequired
+  })).isRequired,
+  events           : React.PropTypes.object,
+  rowNumber        : React.PropTypes.number
 };
 
 
