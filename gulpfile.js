@@ -15,7 +15,11 @@ var DemoJsName = 'demo.js';
 var Locations = {
   Src: {
     HTML: 'src/html/**/*.html',
-    JS_Entry : 'src/js/simian-grid.jsx',
+    JS : [
+      'src/js/simian-grid.jsx',
+      'src/js/enum.js',
+      'src/js/util.js'
+    ],
     Demo_Entry : 'src/js/demo.js'
   },
   Dest: {
@@ -39,7 +43,7 @@ gulp.task('clean', function() {
 /* ************************************************************* */
 
 gulp.task('dist', function() {
-  return gulp.src(Locations.Src.JS_Entry)
+  return gulp.src(Locations.Src.JS)
     .pipe(babel())
     .pipe(gulp.dest(Locations.Dest.Lib));
 });
